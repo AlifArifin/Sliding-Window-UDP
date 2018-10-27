@@ -26,6 +26,6 @@ typedef struct {
 
 // function
 Frame createFrame(unsigned int sequenceNumber, unsigned int dataLength, unsigned char* data);
-unsigned char generateChecksumFrame(Frame frame);
+unsigned char generateChecksumFrame(Frame F);
 
 #endif

@@ -22,5 +22,14 @@ int main() {
     if (result == 0x03) {
         cout<< "yes";
     }
+
+    unsigned char* a;
+    a[0] = 0xAA;
+    a[1] = 0XFF;
+    a[2] = 0x00;
+
+    unsigned char* b;
+    b = a;
+
     return 0;   
 }

@@ -4,13 +4,13 @@
 
 using namespace std;
 
-unsigned char generateChecksumACK(PacketACK ACK) {
+unsigned char generateChecksumACK(PacketACK P) {
     unsigned int sum;
     unsigned int temp;
 
     sum = 0x00;
-    sum += ACK(ACK);
-    temp = NextSequenceNumber(ACK);
+    sum += ACK(P);
+    temp = NextSequenceNumber(P);
     while (temp) {
         sum += temp & 0xFF;
         sum = handleCarry(sum);
