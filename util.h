@@ -8,4 +8,4 @@ using namespace std;
 
 unsigned int handleCarry(unsigned int sum);
 
-#endif;
+#endif

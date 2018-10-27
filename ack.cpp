@@ -14,7 +14,17 @@ unsigned char generateChecksumACK(PacketACK ACK) {
     while (temp) {
         sum += temp & 0xFF;
         sum = handleCarry(sum);
-        temp = temp << 8;
+        temp = temp >> 8;
     }
-    return ~(sum & 0x000000FF);
+    return ~(sum);
+}
+
+PacketACK createACK(unsigned char ACK, unsigned int nextSequenceNumber) {
+    PacketACK P;
+
+    ACK(P) = ACK;
+    NextSequenceNumber(P) = nextSequenceNumber;
+    Checksum(P) = generateChecksumACK(P);
+
+    return P;
 }
