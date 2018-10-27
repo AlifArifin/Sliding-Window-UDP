@@ -8,9 +8,11 @@ unsigned char generateChecksumFrame(Frame F) {
     unsigned int sum;
     unsigned int temp;
 
+    // inisiasi nilai sum
     sum = 0x00;
     sum += SOH(F);
     temp = SequenceNumber(F);
+    // memecah menjadi 1 byte
     while (temp) {
         sum += temp & 0xFF;
         sum = handleCarry(sum);
