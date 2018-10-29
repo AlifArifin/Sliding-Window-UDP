@@ -16,6 +16,7 @@ typedef struct {
 
 // definition
 #define DefaultSOH 0x1;
+#define MaxData 1024;
 
 // selector
 #define SOH(S) ((S).SOH)

@@ -2,6 +2,7 @@
 #include "frame.h"
 #include "ack.h"
 #include "windowsender.h"
+#include "buffer.h"
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <string>
@@ -24,16 +25,11 @@ int main(argc, char* argv) {
     destinationip = argv[4];
     destinationport = atoi(argv[5]);
 
-    // urusan socket
     int udp;
     struct sockaddr_in si_other;
 
-    unsigned char buffer[buffersize];
-
-    FILE* file = fopen(filename, "r");
-    if (file == NULL) {
-        exit(0);
-    }
+    Buffers buffers;
+    buffers = initBuffers(buffersize);
 
     if (udp = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP) == -1) {
         die("socket");
@@ -48,9 +44,24 @@ int main(argc, char* argv) {
         exit(1);
     }
 
-    
+    WindowSender windowSender;
+    windowSender = createNew(windowsize);
+
+    FILE* file = fopen(filename, "r");
+    if (file == NULL) {
+        die("file not found");
+    }
+
+    fseek(file, 0, SEEK_END);
+    unsigned int endFile = ftell(file);
+    rewind(file);
+    unsigned int nowFile = 0;
+
+    unsigned int slen = sizeof(si_other);
 
     while(1) {
+        if (nowFile < endFile) {
 
+        }
     }
 }
