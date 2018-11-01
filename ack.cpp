@@ -9,8 +9,8 @@ unsigned char generateChecksumACK(PacketACK P) {
     unsigned int temp;
 
     sum = 0x00;
-    sum += ACK(P);
-    temp = NextSequenceNumber(P);
+    sum += P.ACK;
+    temp = P.nextSequenceNumber;
     while (temp) {
         sum += temp & 0xFF;
         sum = handleCarry(sum);
@@ -22,9 +22,9 @@ unsigned char generateChecksumACK(PacketACK P) {
 PacketACK createACK(unsigned char ACK, unsigned int nextSequenceNumber) {
     PacketACK P;
 
-    ACK(P) = ACK;
-    NextSequenceNumber(P) = nextSequenceNumber;
-    Checksum(P) = generateChecksumACK(P);
+    P.ACK = ACK;
+    P.nextSequenceNumber = nextSequenceNumber;
+    P.checksum = generateChecksumACK(P);
 
     return P;
 }

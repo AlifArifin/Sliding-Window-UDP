@@ -5,23 +5,17 @@
 #include "frame.h"
 
 typedef struct {
-    Frame frame;
-    boolean valid;
+    Frame* buffer;
+    unsigned int size;
 } Buffer;
 
-void initBuffer(Buffer* buffer);
-
 typedef struct {
-    Buffer* buffers;
-    unsigned int size;
-} Buffers;
+    int frameNumber;
+    unsigned int sequenceNumber;
+    int timeout;
+} WindowBuffer;
 
-Buffers initBuffers(unsigned int size);
-boolean allValid(Buffers buffers);
-
-#define frame(B) ((B).frame)
-#define valid(B) ((B).valid)
-#define buffers(B) ((B).buffers)
-#define size(B) ((B).size)
+Buffer createBuffer(unsigned int size);
+WindowBuffer createWindowBuffer();
 
 #endif

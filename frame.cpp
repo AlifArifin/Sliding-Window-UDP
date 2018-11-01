@@ -10,23 +10,23 @@ unsigned char generateChecksumFrame(Frame F) {
 
     // inisiasi nilai sum
     sum = 0x00;
-    sum += SOH(F);
-    temp = SequenceNumber(F);
+    sum += F.SOH;
+    temp = F.sequenceNumber;
     // memecah menjadi 1 byte
     while (temp) {
         sum += temp & 0xFF;
         sum = handleCarry(sum);
         temp = temp >> 8;
     }
-    temp = DataLength(F);
+    temp = F.dataLength;
     while (temp) {
         sum += temp & 0xFF;
         sum = handleCarry(sum);
         temp = temp >> 8;
     }
 
-    for (unsigned int i = 0; i < DataLength(F); i++) {
-        sum += Data(F)[i];  
+    for (unsigned int i = 0; i < F.dataLength; i++) {
+        sum += F.data[i];  
         sum = handleCarry(sum);
     }
 
@@ -36,13 +36,13 @@ unsigned char generateChecksumFrame(Frame F) {
 Frame createFrame(unsigned int sequenceNumber, unsigned int dataLength, unsigned char* data) {
     Frame F;
 
-    SOH(F) = DefaultSOH;
-    SequenceNumber(F) = sequenceNumber;
-    DataLength(F) = dataLength;
-    for (unsigned int i = 0; i < DataLength(F); i++) {
-        Data(F)[i] = data[i];
+    F.SOH = DefaultSOH;
+    F.sequenceNumber = sequenceNumber;
+    F.dataLength = dataLength;
+    for (unsigned int i = 0; i < F.dataLength; i++) {
+        F.data[i] = data[i];
     }
-    Checksum(F) = generateChecksumFrame(F);
+    F.checksum = generateChecksumFrame(F);
 
     return F; 
 }

@@ -8,14 +8,9 @@ using namespace std;
 
 typedef struct {
     unsigned char ACK;
-    unsigned int NextSequenceNumber;
-    unsigned char Checksum;
+    unsigned int nextSequenceNumber;
+    unsigned char checksum;
 } PacketACK;
-
-// selector
-#define ACK(P) ((P).ACK)
-#define NextSequenceNumber(P) ((P).NextSequenceNumber)
-#define Checksum(P) ((P).Checksum)
 
 // function
 PacketACK createACK(unsigned char ACK, unsigned int nextSequenceNumber);
