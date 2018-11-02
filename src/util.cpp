@@ -99,9 +99,6 @@ void convertToFrame(Frame *F, unsigned char *dataFrame) {
         F->data[i-9] = dataFrame[i];
     }
     
-    for (i = 0; i < 3; i++) {
-        printf("%x ", dataFrame[9+1020+i]);
-    }
     F->checksum = dataFrame[9 + F->dataLength];
 } 
 
