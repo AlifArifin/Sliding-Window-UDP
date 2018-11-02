@@ -86,8 +86,13 @@ int main(int argc, char* argv[]) {
         destinationip = argv[4];
         destinationport = atoi(argv[5]);
     } else {
-        cout << "need parameter" << endl;
-        cout << "./sendfile <filename> <windowsize> <buffersize> <destination_ip> <destination_port>" << endl;
+        cerr << "parameter wrong" << endl;
+        cerr << "./sendfile <filename> <windowsize> <buffersize> <destination_ip> <destination_port>" << endl;
+        return 1;
+    }
+
+    if (buffersize < windowsize) {
+        cerr << "buffersize must be bigger or equal than windowsize" << end;
         return 1;
     }
 
