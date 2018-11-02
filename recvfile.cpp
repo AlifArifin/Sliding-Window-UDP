@@ -29,7 +29,7 @@ void readPacket (char* packet, Frame * F, bool* packetValid, bool* endOfTransfer
 
     *packetValid = (packetChecksum == checksum);
 
-    *endOfTransfer = (packet[0] == 0x0);
+    *endOfTransfer = (F->sequenceNumber == 0);
 }
 
 int main(int argc, char *argv[]) {
