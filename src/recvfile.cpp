@@ -23,27 +23,14 @@ void readPacket (char* packet, Frame * F, bool* packetValid, bool* endOfTransfer
     // memcpy(&F->sequenceNumber, packet+1, 4);
     // memcpy(&F->dataLength, packet+5, 4);
 
-    cout << F->sequenceNumber << endl;
-    // F->data = new unsigned char[F->dataLength];
-    cout << "seq " << F->sequenceNumber << " dat " << F->dataLength << endl;
-
-    cout << F->dataLength << endl;
-    // memcpy(&F->data, packet+9, F->dataLength);
-    // cout << "yes" << endl;
-
     unsigned char packetChecksum = packet[9 + F->dataLength];
     unsigned char checksum = generateChecksumFrame(*F);
-    cout << F->dataLength << endl;
     // for (int i = 0; i < 3; i++) {
     //     printf("%x ", (unsigned char*) packet[1020 + 9 + i]);
     // }
-    cout << "SOH" << F->SOH << endl;
-    cout << "P" << packetChecksum << endl;
-    cout << "C" << checksum << endl;
     *packetValid = (packetChecksum == checksum);
 
     *endOfTransfer = (F->sequenceNumber == 0);
-    cout << *endOfTransfer;
 }
 
 int main(int argc, char *argv[]) {
@@ -168,10 +155,8 @@ int main(int argc, char *argv[]) {
                             slide++;
                         }
 
-                        cout << "seqnum" << seq_num << " slide " << slide;
-
                         /* SLIDING WINDOW */
-                        cout << "Sliding Windows\n";
+                        cout << "== SLIDE ==" << endl;
                         for (unsigned int i = 0; i < windowSize - slide; i++) {
                             isPacketReceived[i] = isPacketReceived[i + slide];
                         }
@@ -199,20 +184,21 @@ int main(int argc, char *argv[]) {
                         }
                         seqCount = seq_num + 1;
                         done = true;
+                        cout << "== RECEIVE PACKET ==" << endl;
                         cout << "Receive last packet " << seq_num << endl;
                         cout << "Send last ACK " << seq_num << endl;
                         
                     } else {
+                        cout << "== RECEIVE PACKET ==" << endl;
                         cout << "Receiving packet " << seq_num << endl;
                         cout << "Sending ack " << seq_num << endl;
                     }
                 } else {
+                    cout << "== PACKET ERROR ==" << endl;
                     cout << "Packet error " << seq_num << endl;
                     cout << "Sending NAK " << seq_num << endl;
                 }
             } else {
-                cout << "laf " << laf << endl;
-                cout << "lfr " << lfr << endl;
                 cout << "SeqNum not in range" << endl;
             }
 
