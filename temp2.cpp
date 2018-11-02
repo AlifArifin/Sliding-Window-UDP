@@ -1,14 +1,22 @@
 #include <iostream>
 #include <fstream>
+#include <chrono>
+#include <stdio.h>
+#include <thread>
 
 using namespace std;
+using namespace chrono;
+using std::chrono::system_clock;
 
 int main() {
-    FILE* file = fopen("tes.txt", "r");
+    auto a = high_resolution_clock::now();
 
-    fseek(file, 0, SEEK_END);
-    unsigned int endFile = ftell(file);
-
-    cout << endFile;
+    cout << a.time_since_epoch().count() << endl;
+    // this_thread::sleep_for(seconds(1));
+    high_resolution_clock::time_point b = high_resolution_clock::now() + microseconds(10);
+    cout << b.time_since_epoch().count() << endl;
+    if (b > a) {
+        cout << "yes";
+    }
     return 0;
 }

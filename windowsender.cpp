@@ -8,8 +8,8 @@ WindowSender createNew(unsigned int sws) {
     S.SWS = sws;
 
     WindowBuffer WB[S.SWS];
-    S.LAR = NULL;
-    S.LFS = NULL;
+    S.LAR = 0;
+    S.LFS = 0;
 
     for (int i = 0; i < S.SWS; i++) {
         WB[i] = createWindowBuffer();
@@ -21,27 +21,34 @@ WindowSender createNew(unsigned int sws) {
 }
 
 void receiveACK(WindowSender *S, unsigned int nextSequenceNumber) {
-    S->LAR = nextSequenceNumber - 1;
-}
-
-unsigned int sendFrame(WindowSender *S) {
-    if (S->LAR == NULL) {
-        if (S->LFS == NULL) {
-            S->LFS = 0;
-        } else if (S->LFS < S->SWS) {
-            S->LFS++;
-        } else {
-            return NULL;
-        }
-    } else {
-        if (S->LFS - S->LAR < S->SWS) {
-            S->LFS++;
-        } else {
-            return NULL;
+    for (int i = 0; i < S->SWS; i++) {
+        if (S->buffer[i].sequenceNumber == nextSequenceNumber - 1) {
+            S->buffer[i].ack = true;
         }
     }
 
-    return S->LFS;
+    while (true) {
+        for (int i = 0; i < S->SWS; i++) {
+            if (S->buffer[i].sequenceNumber == S->LAR + 1) {
+                if (S->buffer[i].ack) {
+                    S->LAR++;
+                } else {
+                    return;
+                }
+            }
+        }
+    }
+}
+
+unsigned int sendFrame(WindowSender *S, unsigned int maxSequenceNumber) {
+    if (S->LFS == maxSequenceNumber) {
+        return 0;
+    } else if (S->LFS - S->LAR < S->SWS) {
+        S->LFS++;
+        return S->LFS;
+    } else {
+        return 0;
+    }
 }
 
 int updateWindow(WindowSender *S, Buffer *B, unsigned int sequenceNumber) {
@@ -67,6 +74,8 @@ int updateWindow(WindowSender *S, Buffer *B, unsigned int sequenceNumber) {
 
     S->buffer[min].frameNumber = idx;
     S->buffer[min].sequenceNumber = sequenceNumber;
+    S->buffer[min].ack = false;
+    S->buffer[min].timeout = high_resolution_clock::now();
 
     return min;
 }

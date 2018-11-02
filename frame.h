@@ -15,11 +15,13 @@ typedef struct {
 } Frame;
 
 // definition
-#define DefaultSOH 0x1;
-#define MaxData 1024;
+#define DefaultSOH 0x1
+#define MaxData 1024
+#define TimeoutFrame 10
 
 // function
 Frame createFrame(unsigned int sequenceNumber, unsigned int dataLength, unsigned char* data);
 unsigned char generateChecksumFrame(Frame F);
+unsigned int handleCarry(unsigned int sum);
 
 #endif

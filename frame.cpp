@@ -1,5 +1,4 @@
 #include "frame.h"
-#include "util.h"
 #include <iostream>
 
 using namespace std;
@@ -45,4 +44,14 @@ Frame createFrame(unsigned int sequenceNumber, unsigned int dataLength, unsigned
     F.checksum = generateChecksumFrame(F);
 
     return F; 
+}
+
+unsigned int handleCarry(unsigned int sum) {
+    while (sum & 0xFFFFFF00) {
+        // ada carry
+        sum &= 0xFF;
+        sum++;
+    }
+
+    return sum;
 }

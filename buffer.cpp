@@ -2,7 +2,7 @@
 
 using namespace std;
 
-Buffer createBuffer(unsigned int size) {
+Buffer createBuffer(int size) {
     Buffer B;
     Frame buffer[size];
     
@@ -16,7 +16,8 @@ WindowBuffer createWindowBuffer() {
     WindowBuffer W;
 
     W.frameNumber = -1;
-    W.timeout = -1;
+    W.timeout = high_resolution_clock::now();
+    W.ack = false;
 
     return W;
 }

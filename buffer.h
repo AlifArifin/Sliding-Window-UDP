@@ -3,6 +3,11 @@
 
 #include <iostream>
 #include "frame.h"
+#include <chrono>
+
+using namespace std;
+using namespace chrono;
+using std::chrono::system_clock;
 
 typedef struct {
     Frame* buffer;
@@ -12,10 +17,11 @@ typedef struct {
 typedef struct {
     int frameNumber;
     unsigned int sequenceNumber;
-    int timeout;
+    high_resolution_clock::time_point timeout;
+    bool ack;
 } WindowBuffer;
 
-Buffer createBuffer(unsigned int size);
+Buffer createBuffer(int size);
 WindowBuffer createWindowBuffer();
 
 #endif

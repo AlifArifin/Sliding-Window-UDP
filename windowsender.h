@@ -15,7 +15,7 @@ typedef struct {
 
 WindowSender createNew(unsigned int sws);
 void receiveACK(WindowSender *S, unsigned int nextSequenceNumber);
-void sendFrame(WindowSender *S, unsigned int sequenceNumber);
+unsigned int sendFrame(WindowSender *S, unsigned int maxSequenceNumber);
 int updateWindow(WindowSender *S, Buffer *B, unsigned int sequenceNumber);
 
 #endif

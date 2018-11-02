@@ -2,18 +2,7 @@
 #include <iostream>
 #include <fstream>
 #include "buffer.h"
-
-using namespace std;
-
-unsigned int handleCarry(unsigned int sum) {
-    while (sum & 0xFFFFFF00) {
-        // ada carry
-        sum &= 0xFF;
-        sum++;
-    }
-
-    return sum;
-}
+#include <chrono>
 
 void readFile(FILE* file, Buffer *B, unsigned int *sequenceNumber, unsigned int LAR) {
     // mengecek apakah terdapat frame yang sudah di-ACK
