@@ -19,6 +19,7 @@ void receiveACK(WindowSender *S, unsigned int nextSequenceNumber) {
     for (int i = 0; i < S->SWS; i++) {
         if (S->buffer[i].sequenceNumber == nextSequenceNumber - 1) {
             S->buffer[i].ack = true;
+            S->buffer[i].sent = false;
         }
     }
 

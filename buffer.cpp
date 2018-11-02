@@ -17,4 +17,5 @@ void createWindowBuffer(WindowBuffer *W) {
     W->sequenceNumber = 0;
     W->timeout = high_resolution_clock::now();
     W->ack = false;
+    W->sent = false;
 }

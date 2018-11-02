@@ -30,6 +30,7 @@ unsigned int maxSequenceNumber;
 mutex m;
 bool done = false;
 bool gotNAK = false;
+bool final = false; // all frame already sent, sent a sentinel
 
 void threadReceive() {
     PacketACK P;
@@ -37,6 +38,7 @@ void threadReceive() {
     int sizeP = sizeof(P);
     int len;
 
+    cout << "Receive thread active" << endl;
     // menunggu ack dari receiver
     while (!done) {
         len = recvfrom(udp, segment, sizeP, 0, (struct sockaddr*) &si_other, &si_other_size);
@@ -60,6 +62,14 @@ void threadReceive() {
                 cout << "got NAK" << endl;
             }
             m.unlock();
+        }
+    }
+
+    while (!final) {
+        len = recvfrom(udp, segment, sizeP, 0, (struct sockaddr*) &si_other, &si_other_size);
+        unsigned int checksum = generateChecksumACK(P);
+        if (checksum == P.checksum) {
+            final = true;
         }
     }
 }
@@ -124,7 +134,6 @@ int main(int argc, char* argv[]) {
     // unsigned int nowFile = 0;
 
     
-
     // inisiasi
     sequenceNumber = 1;
     int sizeSI = sizeof(si_other);
@@ -173,12 +182,13 @@ int main(int argc, char* argv[]) {
         high_resolution_clock::time_point now = high_resolution_clock::now();
         // cout << now.time_since_epoch().count() << endl;
         for (int i = 0; i < windowSender.SWS; i++) {
-            if (!windowSender.buffer[i].ack && windowSender.buffer[i].sequenceNumber != 0) {
+            if (!windowSender.buffer[i].ack && windowSender.buffer[i].sent) {
                 if (windowSender.buffer[i].timeout < now) {
                     windowSender.buffer[i].timeout = high_resolution_clock::now() + milliseconds(TimeoutFrame);
                     
                     Frame frameSend = buffer.buffer[windowSender.buffer[i].frameNumber];
                     char* segment = (char*) &frameSend;
+
                     // send frame
                     sendto(udp, 
                         segment, sizeof(frameSend),
@@ -197,9 +207,11 @@ int main(int argc, char* argv[]) {
             // add timeout
             
             windowSender.buffer[frameNum].timeout = high_resolution_clock::now() + milliseconds(TimeoutFrame);
+            windowSender.buffer[frameNum].sent = true;
             Frame frameSend = buffer.buffer[windowSender.buffer[frameNum].frameNumber];
             char* segment = (char*) &frameSend;
             // send frame
+            this_thread::sleep_for(microseconds(TimeoutFrame));
             sendto(udp, 
                 segment, sizeof(frameSend),
                 0, (struct sockaddr*) &si_other, sizeSI);
@@ -207,6 +219,31 @@ int main(int argc, char* argv[]) {
             cout << "transmit frame " << windowSender.buffer[frameNum].sequenceNumber << " " << windowSender.buffer[frameNum].timeout.time_since_epoch().count() << endl;
         }
         m.unlock();
+    }
+
+    bool sentinelSent = false;
+    Frame sentinelFrame;
+    high_resolution_clock::time_point timeout = high_resolution_clock::now() + milliseconds(TimeoutFrame);
+    createFrame(&sentinelFrame, 0, 0, NULL);
+    char* segment = (char*) &sentinelFrame;
+
+    while (!final) {
+        if (!sentinelSent) {
+            // send frame
+            this_thread::sleep_for(microseconds(TimeoutFrame));
+            sendto(udp, 
+                segment, sizeof(sentinelFrame),
+                0, (struct sockaddr*) &si_other, sizeSI);
+            sentinelSent = true;
+        } else {
+            auto now = high_resolution_clock::now();
+            if (now > timeout) {
+                this_thread::sleep_for(microseconds(TimeoutFrame));
+                sendto(udp, 
+                    segment, sizeof(sentinelFrame),
+                    0, (struct sockaddr*) &si_other, sizeSI);
+            }
+        }
     }
 
     recv_thread.detach();

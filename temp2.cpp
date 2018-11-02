@@ -9,8 +9,7 @@ using namespace chrono;
 using std::chrono::system_clock;
 
 int main() {
-    auto a = high_resolution_clock::now();
-
+    high_resolution_clock::time_point a = high_resolution_clock::;
     cout << a.time_since_epoch().count() << endl;
     // this_thread::sleep_for(seconds(1));
     high_resolution_clock::time_point b = high_resolution_clock::now() + microseconds(10);

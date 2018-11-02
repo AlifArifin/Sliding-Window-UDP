@@ -19,6 +19,7 @@ typedef struct {
     unsigned int sequenceNumber;
     high_resolution_clock::time_point timeout;
     bool ack;
+    bool sent;
 } WindowBuffer;
 
 void createBuffer(Buffer *B, int size);
