@@ -2,6 +2,7 @@
 #include <iostream>
 #include <fstream>
 #include "buffer.h"
+#include "frame.h"
 #include <chrono>
 #include <string.h>
 

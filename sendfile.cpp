@@ -214,7 +214,7 @@ int main(int argc, char* argv[]) {
             windowSender.buffer[frameNum].timeout = high_resolution_clock::now() + milliseconds(TimeoutFrame);
             windowSender.buffer[frameNum].sent = true;
             Frame frameSend = buffer.buffer[windowSender.buffer[frameNum].frameNumber];
-            char* segment = (char*) &frameSend;
+            char* segment = convertToChar(frameSend);
             // send frame
             this_thread::sleep_for(microseconds(TimeoutFrame));
             sendto(udp, 

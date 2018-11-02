@@ -6,6 +6,7 @@
 #include "buffer.h"
 #include "windowsender.h"
 #include <chrono>
+#include "frame.h"
 
 using namespace std;
 using namespace chrono;
@@ -14,6 +15,7 @@ using std::chrono::system_clock;
 unsigned int handleCarry(unsigned int sum);
 void readFile(FILE* file, Buffer *B, unsigned int *sequenceNumber, unsigned int LAR);
 void printBuffer(Buffer B);
-char* convertToChar(frame F);
+unsigned char* convertToChar(Frame F);
+Frame convertToFrame(unsigned char *dataFrame);
 
 #endif
