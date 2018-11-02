@@ -18,5 +18,7 @@ void readFile(FILE* file, Buffer *B, unsigned int *sequenceNumber, unsigned int 
 void printBuffer(Buffer B);
 unsigned char* convertToChar(Frame F);
 Frame convertToFrame(unsigned char *dataFrame);
+unsigned char* convertToAckFrame(PacketACK inputAck);
+
 
 #endif

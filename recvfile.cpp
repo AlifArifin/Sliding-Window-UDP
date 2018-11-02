@@ -32,16 +32,6 @@ void readPacket (char* packet, Frame * F, bool* packetValid, bool* endOfTransfer
     *endOfTransfer = (F->sequenceNumber == 0);
 }
 
-unsigned char* convertToAckFrame(PacketACK inputAck){
-    unsigned char* dataACK = new unsigned char[6];
-    dataACK[0] = inputAck.ACK;
-    for (int i = 1; i <= 4; i++) {
-        dataACK[i] = inputAck.nextSequenceNumber >> (8 * (4 - i));
-    }
-    dataACK[5] = inputAck.checksum;
-    return dataACK;
-}
-
 int main(int argc, char *argv[]) {
     struct sockaddr_in myaddr; /* our address*/
     struct sockaddr_in remaddr; /* remote address*/
