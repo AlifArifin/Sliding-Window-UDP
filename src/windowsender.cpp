@@ -22,21 +22,26 @@ void receiveACK(WindowSender *S, unsigned int nextSequenceNumber) {
             S->buffer[i].sent = false;
         }
     }
-    cout << "rcv test" << endl;
-    cout << "LAR" << S->LAR << endl;
+    bool out = false;
 
+    printWindow(*S);
     while (true) {
+        out = false;
         for (int i = 0; i < S->SWS; i++) {
             if (S->LAR == S->LFS) {
                 return;
             }
             if (S->buffer[i].sequenceNumber == S->LAR + 1) {
+                out = true;
                 if (S->buffer[i].ack) {
                     S->LAR++;
                 } else {
                     return;
                 }
             }
+        }
+        if (!out) {
+            return;
         }
     }
 }
@@ -61,8 +66,10 @@ int updateWindow(WindowSender *S, Buffer *B, unsigned int sequenceNumber) {
         if (S->buffer[i].frameNumber == -1) {
             min = i;
             break;
+        } else if (min == -1) {
+            min = i;
         } else {
-            min = S->buffer[i].sequenceNumber < min ? S->buffer[i].sequenceNumber : min;
+            min = S->buffer[i].sequenceNumber < S->buffer[min].sequenceNumber ? i : min;
         }
     }
 
@@ -82,7 +89,7 @@ int updateWindow(WindowSender *S, Buffer *B, unsigned int sequenceNumber) {
 }
 
 void printWindow(WindowSender W) {
-    cout << "Window ";
+    cout << "== WINDOW ==" << endl;
     for (int i = 0; i < W.SWS; i++) {
         cout << W.buffer[i].sequenceNumber << " ";
     }

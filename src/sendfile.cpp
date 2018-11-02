@@ -38,39 +38,32 @@ void threadReceive() {
     int sizeP = sizeof(segment);
     int len;
 
-    cout << "Receive thread active" << endl;
     // menunggu ack dari receiver
     while (!done) {
         len = recvfrom(udp, segment, sizeP, 0, (struct sockaddr*) &si_other, &si_other_size);
-        // cout << "recv" << endl;
         // convert to Packet
         convertToAck(&P, segment);
         unsigned int checksum = generateChecksumACK(P);
-        // cout << "test" << endl;
         if (checksum == P.checksum) {
             m.lock();
             // meng-update sliding window
-            // cout << "test" << endl;
-            cout << P.ACK << endl;
-            cout << DefaultACK << endl;
             if (P.ACK == (unsigned char) DefaultACK) {
-                cout << "test" << endl;
                 receiveACK(&windowSender, P.nextSequenceNumber);
-                cout << "test" << endl;
                 if (windowSender.LFS == maxSequenceNumber) {
                     if (windowSender.LFS == windowSender.LAR) {
                         done = true;
                     }
                 }
                 if (done) {
-                    cout << "done true";
+                    cout << "== ALL FRAME ALREADY SENT ==" << endl;
                 } else {
-                    cout << "done false";
                 }
+                cout << "== ACK ==" << endl;
                 cout << "got ACK " << P.nextSequenceNumber << endl;
             } else {
                 gotNAK = true;
-                // cout << "got NAK" << endl;
+                cout << "== NAK ==" << endl;
+                cout << "got NAK" << endl;
             }
             m.unlock();
         }
@@ -131,6 +124,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    cout << "== SOCKET ==" << endl;
     cout << "Socket already built" << endl;
 
     // membuat window untuk sliding window
@@ -157,6 +151,7 @@ int main(int argc, char* argv[]) {
     // init thread
     thread recv_thread(threadReceive);
 
+    cout << "== MAX FRAME ==" << endl;
     cout << "Max Frame " << maxSequenceNumber << endl;
 
     // int count = 0;    
@@ -165,10 +160,6 @@ int main(int argc, char* argv[]) {
     
     while (!done) {
         m.lock();
-        // count++;
-        // if (count % 10000 == 0) {
-        //     cout << "yes";
-        // }
         if (gotNAK) {
             // send LAR + 1 frame;
             for (int i = 0; i < windowSender.SWS; i++) {
@@ -182,6 +173,7 @@ int main(int argc, char* argv[]) {
                         segment, frameSend.dataLength + 10,
                         0, (struct sockaddr*) &si_other, sizeSI);
 
+                    cout << "== RETRANSMIT ==" << endl;
                     cout << "retransmit error frame " << windowSender.buffer[i].sequenceNumber << endl;
                 }
             }
@@ -196,7 +188,6 @@ int main(int argc, char* argv[]) {
         
         // check timeout
         high_resolution_clock::time_point now = high_resolution_clock::now();
-        // cout << now.time_since_epoch().count() << endl;
         for (int i = 0; i < windowSender.SWS; i++) {
             if (!windowSender.buffer[i].ack && windowSender.buffer[i].sent) {
                 if (windowSender.buffer[i].timeout < now) {
@@ -209,7 +200,7 @@ int main(int argc, char* argv[]) {
                     sendto(udp, 
                         segment, frameSend.dataLength + 10,
                         0, (struct sockaddr*) &si_other, sizeSI);
-
+                    cout << "== RETRANSMIT ==" << endl;
                     cout << "retransmit timeout frame " << windowSender.buffer[i].sequenceNumber << endl;
                 }
             }
@@ -220,6 +211,7 @@ int main(int argc, char* argv[]) {
             int frameNum;
             
             frameNum = updateWindow(&windowSender, &buffer, temp);
+            printWindow(windowSender);
             // add timeout
             
             windowSender.buffer[frameNum].timeout = high_resolution_clock::now() + milliseconds(TimeoutFrame);
@@ -230,16 +222,13 @@ int main(int argc, char* argv[]) {
             // for (int i = 0; i < 1024; i++) {
             //     printf("%x ", frameSend.data[i]);
             // }
-            for (int i = 0; i < 3; i++) {
-                printf("%x ", segment[9+1020 + i]);
-            }
 
             // send frame
             this_thread::sleep_for(microseconds(TimeoutFrame));
             sendto(udp, 
                 segment, frameSend.dataLength + 10,
                 0, (struct sockaddr*) &si_other, sizeSI);
-
+            cout << "== TRANSMIT ==" << endl;
             cout << "transmit frame " << windowSender.buffer[frameNum].sequenceNumber << " " << windowSender.buffer[frameNum].timeout.time_since_epoch().count() << endl;
         }
         m.unlock();
@@ -251,7 +240,7 @@ int main(int argc, char* argv[]) {
     createFrame(&sentinelFrame, 0, 0, NULL);
     unsigned char* segment = convertToChar(sentinelFrame);
 
-    cout << "send final" << endl;
+    cout << "== FINAL ==" << endl;
 
     while (!final) {
         if (!sentinelSent) {

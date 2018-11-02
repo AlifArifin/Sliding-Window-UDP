@@ -22,48 +22,29 @@ void convertToAck (PacketACK *temp, unsigned char * dataAck) {
 void readFile(FILE* file, Buffer *B, unsigned int *sequenceNumber, unsigned int LAR) {
     // mengecek apakah terdapat frame yang sudah di-ACK
     if (!feof(file)) {
-        // cout << "yes" << endl;
         for (int i = 0; i < B->size; i++) {
-            // cout << "yes " << i << endl;
             // melakukan pembacaan apabila terdapat frame pada buffer yang seqnum-nya <= LAR
             if (B->buffer[i].sequenceNumber <= LAR) {
                 // jika sudah end of file maka break
-                // cout << "yes " << 'a' << endl;
                 
                 if (feof(file)) {
-                    // cout << "yes " << 'd' << endl;
                     printBuffer(*B);
                     return;
                 }
-
-                // cout << "yes " << 'b' << endl;
 
                 unsigned char data[MaxData];
                 // char temp[1];
                 int j;
 
-                // cout << "yes " << 'c' << endl;
-
                 j = fread(data, 1, MaxData, file);
-                // while(fread(temp, 1, 1, file) == 1 && j < 1024) {
-                //     // cout << j << endl;
-                //     data[j] = (unsigned char) temp[0]; 
-                //     j++;
-                //     // cout << j << endl;
-                // }
-                cout << j << endl;
 
                 unsigned char realData[j];
                 memcpy(realData, data, sizeof(realData));
 
-                // cout << "yes" << endl;
-
                 Frame F;
                 createFrame(&F, *sequenceNumber, j, realData);
-                cout << "yes" << endl;
                 printFrame(F);
                 
-                // cout << "yes" << endl;
                 *sequenceNumber += 1;
 
                 B->buffer[i] = F;
@@ -74,7 +55,7 @@ void readFile(FILE* file, Buffer *B, unsigned int *sequenceNumber, unsigned int 
 }
 
 void printBuffer(Buffer B) {
-    cout << "Buffer ";
+    cout << "== BUFFER ==";
     for (int i = 0; i < B.size; i++) {
         cout << B.buffer[i].sequenceNumber << " ";
     }
@@ -104,21 +85,15 @@ unsigned char* convertToChar(Frame F) {
 void convertToFrame(Frame *F, unsigned char *dataFrame) {
     int i;
 
-    cout << "yes" << endl;
     F->SOH = dataFrame[0];
     for (i = 1; i <= 4; i++) {
         F->sequenceNumber <<= 8;
         F->sequenceNumber |= dataFrame[i];
     }
-    cout << F->sequenceNumber << endl;
-    cout << "yes" << endl;
     for (i = 5; i <= 8; i++) {
         F->dataLength <<= 8;
         F->dataLength |= dataFrame[i];
     }
-    cout << F->dataLength << endl;
-    cout << "yes" << endl;
-    cout << dataFrame[9] <<endl;
     F->data = new unsigned char[F->dataLength];
     for (i = 9; i < F->dataLength + 9; i++) {
         F->data[i-9] = dataFrame[i];
@@ -127,9 +102,7 @@ void convertToFrame(Frame *F, unsigned char *dataFrame) {
     for (i = 0; i < 3; i++) {
         printf("%x ", dataFrame[9+1020+i]);
     }
-    cout << dataFrame[9 + 3] << endl;
     F->checksum = dataFrame[9 + F->dataLength];
-    cout << F->checksum << endl;
 } 
 
 unsigned char* convertToAckFrame(PacketACK inputAck){

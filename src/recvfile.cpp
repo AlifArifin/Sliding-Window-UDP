@@ -25,6 +25,7 @@ void readPacket (char* packet, Frame * F, bool* packetValid, bool* endOfTransfer
 
     cout << F->sequenceNumber << endl;
     // F->data = new unsigned char[F->dataLength];
+    cout << "seq " << F->sequenceNumber << " dat " << F->dataLength << endl;
 
     cout << F->dataLength << endl;
     // memcpy(&F->data, packet+9, F->dataLength);
@@ -33,9 +34,9 @@ void readPacket (char* packet, Frame * F, bool* packetValid, bool* endOfTransfer
     unsigned char packetChecksum = packet[9 + F->dataLength];
     unsigned char checksum = generateChecksumFrame(*F);
     cout << F->dataLength << endl;
-    for (int i = 0; i < 1024; i++) {
-        printf("%x ", F->data[i]);
-    }
+    // for (int i = 0; i < 3; i++) {
+    //     printf("%x ", (unsigned char*) packet[1020 + 9 + i]);
+    // }
     cout << "SOH" << F->SOH << endl;
     cout << "P" << packetChecksum << endl;
     cout << "C" << checksum << endl;
@@ -103,6 +104,8 @@ int main(int argc, char *argv[]) {
 
     /* receiving data */
     file = fopen(filename, "wb");
+    lfr = 0;
+    laf = lfr + windowSize;
     while (!done) {
         buffer = new char[maxBufferSize];
         bufferSize = 0;
@@ -115,12 +118,9 @@ int main(int argc, char *argv[]) {
             isPacketReceived[i] = false;
         }
 
-        lfr = 0;
-        laf = lfr + windowSize;
-
         while (true) {
             /* receiving message */
-            recvlen = recvfrom(fd, packet, 1024, MSG_WAITALL, (struct sockaddr*)&remaddr, &addrlen);
+            recvlen = recvfrom(fd, packet, 1034, MSG_WAITALL, (struct sockaddr*)&remaddr, &addrlen);
             if (recvlen < 0) {
                 cout << "Error receiving\n";
                 exit(1); 
@@ -168,6 +168,8 @@ int main(int argc, char *argv[]) {
                             slide++;
                         }
 
+                        cout << "seqnum" << seq_num << " slide " << slide;
+
                         /* SLIDING WINDOW */
                         cout << "Sliding Windows\n";
                         for (unsigned int i = 0; i < windowSize - slide; i++) {
@@ -185,7 +187,7 @@ int main(int argc, char *argv[]) {
                         if (!isPacketReceived[seq_num - lfr + 1]) {
                             buffer_offset = (seq_num - lfr - 1) * 1024;
                             memcpy(buffer + buffer_offset, data, datalen);
-                            isPacketReceived[seq_num - lfr + 1] = true;
+                            isPacketReceived[seq_num - lfr] = true;
                             bufferSize += datalen;
                         }
                     }
@@ -209,6 +211,8 @@ int main(int argc, char *argv[]) {
                     cout << "Sending NAK " << seq_num << endl;
                 }
             } else {
+                cout << "laf " << laf << endl;
+                cout << "lfr " << lfr << endl;
                 cout << "SeqNum not in range" << endl;
             }
 

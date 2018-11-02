@@ -17,3 +17,4 @@ make
 ```
 
 ## Cara Kerja Sliding Window
+### Sender

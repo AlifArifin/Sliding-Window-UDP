@@ -62,5 +62,6 @@ unsigned int handleCarry(unsigned int sum) {
 }
 
 void printFrame(Frame F) {
-    cout << "Frame " << F.sequenceNumber << " " << F.dataLength << endl;
+    cout << "== FRAME ==" << endl;
+    cout << F.sequenceNumber << " " << F.dataLength << endl;
 }
