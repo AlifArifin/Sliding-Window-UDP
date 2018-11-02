@@ -32,6 +32,16 @@ void readPacket (char* packet, Frame * F, bool* packetValid, bool* endOfTransfer
     *endOfTransfer = (packet[0] == 0x0);
 }
 
+unsigned char* convertToAckFrame(PacketACK inputAck){
+    unsigned char* dataACK = new unsigned char[6];
+    dataACK[0] = inputAck.ACK;
+    for (int i = 1; i <= 4; i++) {
+        dataACK[i] = inputAck.nextSequenceNumber >> (8 * (4 - i));
+    }
+    dataACK[5] = inputAck.checksum;
+    return dataACK;
+}
+
 int main(int argc, char *argv[]) {
     struct sockaddr_in myaddr; /* our address*/
     struct sockaddr_in remaddr; /* remote address*/
@@ -54,7 +64,7 @@ int main(int argc, char *argv[]) {
     /* packet buffer variable */
     char packet[1034];
     char data[1024];
-    char ack[6];
+    unsigned char ack[6];
     size_t datalen;
     unsigned int seq_num;
     bool packetValid;
@@ -121,12 +131,15 @@ int main(int argc, char *argv[]) {
             //readPacket(packet, &seq_num, &datalen, data, &packetValid, &endOfTransfer);
 
             if (seq_num <= laf) {
-                ackdata = createACK(1, seq_num);
-                /* create ack buffer */
-                ack[0] = ackdata.ACK;
-                memcpy(ack + 1, &ackdata.nextSequenceNumber, 4);
-                ack[5] = ackdata.checksum;
+                if (packetValid) {
+                    ackdata = createACK(0, seq_num);
+                } else {
+                    ackdata = createACK(1, seq_num);
+                }
 
+                /* create ack buffer */
+                memcpy(ack, convertToAckFrame(ackdata), 6);
+                
                 //Send ACK
                 int acklen = sendto(fd, ack, 6, MSG_WAITALL, (struct sockaddr*)&remaddr, addrlen);
                 if (acklen < 0) {
