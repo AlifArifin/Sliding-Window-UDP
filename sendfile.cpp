@@ -33,9 +33,9 @@ bool gotNAK = false;
 bool final = false; // all frame already sent, sent a sentinel
 
 void threadReceive() {
+    unsigned char *segment = new unsigned char[6];
     PacketACK P;
-    char* segment = (char*) &P;
-    int sizeP = sizeof(P);
+    int sizeP = sizeof(segment);
     int len;
 
     cout << "Receive thread active" << endl;
@@ -43,6 +43,8 @@ void threadReceive() {
     while (!done) {
         len = recvfrom(udp, segment, sizeP, 0, (struct sockaddr*) &si_other, &si_other_size);
 
+        // convert to Packet
+        P = 
         unsigned int checksum = generateChecksumACK(P);
 
         if (checksum == P.checksum) {
@@ -165,7 +167,7 @@ int main(int argc, char* argv[]) {
                     windowSender.buffer[i].timeout = high_resolution_clock::now() + milliseconds(TimeoutFrame);
                     
                     Frame frameSend = buffer.buffer[windowSender.buffer[i].frameNumber];
-                    char* segment = (char*) &frameSend;
+                    unsigned char* segment = convertToChar(frameSend);
                     // send frame
                     sendto(udp, 
                         segment, sizeof(frameSend),
@@ -192,7 +194,7 @@ int main(int argc, char* argv[]) {
                     windowSender.buffer[i].timeout = high_resolution_clock::now() + milliseconds(TimeoutFrame);
                     
                     Frame frameSend = buffer.buffer[windowSender.buffer[i].frameNumber];
-                    char* segment = (char*) &frameSend;
+                    unsigned char* segment = convertToChar(frameSend);
 
                     // send frame
                     sendto(udp, 
@@ -214,7 +216,7 @@ int main(int argc, char* argv[]) {
             windowSender.buffer[frameNum].timeout = high_resolution_clock::now() + milliseconds(TimeoutFrame);
             windowSender.buffer[frameNum].sent = true;
             Frame frameSend = buffer.buffer[windowSender.buffer[frameNum].frameNumber];
-            char* segment = convertToChar(frameSend);
+            unsigned char* segment = convertToChar(frameSend);
             // send frame
             this_thread::sleep_for(microseconds(TimeoutFrame));
             sendto(udp, 
@@ -230,7 +232,7 @@ int main(int argc, char* argv[]) {
     Frame sentinelFrame;
     high_resolution_clock::time_point timeout = high_resolution_clock::now() + milliseconds(TimeoutFrame);
     createFrame(&sentinelFrame, 0, 0, NULL);
-    char* segment = (char*) &sentinelFrame;
+    unsigned char* segment = convertToChar(sentinelFrame);
 
     while (!final) {
         if (!sentinelSent) {

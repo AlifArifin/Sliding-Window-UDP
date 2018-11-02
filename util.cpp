@@ -71,7 +71,7 @@ void printBuffer(Buffer B) {
 unsigned char* convertToChar(Frame F) {
     int i;
     int length = F.dataLength + 10;
-    unsigned char* dataFrame = new char[length];
+    unsigned char* dataFrame = new unsigned char[length];
 
     dataFrame[0] = DefaultSOH;
     for (i = 1; i <= 4; i++) {
@@ -104,7 +104,17 @@ Frame convertToFrame(unsigned char *dataFrame) {
     for (i = 9; i < F.dataLength + 9; i++) {
         F.data[i-9] = dataFrame[i];
     }
-    F.checksum = dataFrame[9 + F.dataLength]
+    F.checksum = dataFrame[9 + F.dataLength];
 
     return F;
 } 
+
+unsigned char* convertToAckFrame(PacketACK inputAck){
+    unsigned char* dataACK = new unsigned char[6];
+    dataACK[0] = inputAck.ACK;
+    for (int i = 1; i <= 4; i++) {
+        dataACK[i] = inputAck.nextSequenceNumber >> (8 * (4 - i));
+    }
+    dataACK[5] = inputAck.checksum;
+    return dataACK;
+}
