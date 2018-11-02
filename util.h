@@ -20,5 +20,4 @@ unsigned char* convertToChar(Frame F);
 Frame convertToFrame(unsigned char *dataFrame);
 unsigned char* convertToAckFrame(PacketACK inputAck);
 
-
 #endif

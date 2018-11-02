@@ -44,7 +44,7 @@ void threadReceive() {
         len = recvfrom(udp, segment, sizeP, 0, (struct sockaddr*) &si_other, &si_other_size);
 
         // convert to Packet
-        P = 
+        P = convertToAck(segment);
         unsigned int checksum = generateChecksumACK(P);
 
         if (checksum == P.checksum) {
