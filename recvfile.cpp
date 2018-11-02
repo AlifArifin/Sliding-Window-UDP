@@ -9,13 +9,20 @@
 #include <netinet/in.h>	
 #include "ack.h"
 #include "frame.h"
+#include <fstream>
 
 using namespace std;
 
 void readPacket (char* packet, Frame * F, bool* packetValid, bool* endOfTransfer) {
     memcpy(&F->sequenceNumber, packet+1, 4);
+    cout << F->sequenceNumber << endl;
     memcpy(&F->dataLength, packet+5, 4);
+
+    F->data = new unsigned char[F->dataLength];
+
+    cout << F->dataLength << endl;
     memcpy(&F->data, packet+9, F->dataLength);
+    cout << "yes" << endl;
 
     unsigned char packetChecksum = packet[9 + F->dataLength];
     unsigned char checksum = generateChecksumFrame(*F);
@@ -99,7 +106,7 @@ int main(int argc, char *argv[]) {
         while (true) {
             /* receiving message */
             recvlen = recvfrom(fd, packet, 1024, MSG_WAITALL, (struct sockaddr*)&remaddr, &addrlen);
-            if (recvlen) {
+            if (recvlen < 0) {
                 cout << "Error receiving\n";
                 exit(1); 
             }

@@ -14,5 +14,6 @@ using std::chrono::system_clock;
 unsigned int handleCarry(unsigned int sum);
 void readFile(FILE* file, Buffer *B, unsigned int *sequenceNumber, unsigned int LAR);
 void printBuffer(Buffer B);
+char* convertToChar(frame F);
 
 #endif

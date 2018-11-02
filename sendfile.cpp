@@ -92,7 +92,7 @@ int main(int argc, char* argv[]) {
     }
 
     if (buffersize < windowsize) {
-        cerr << "buffersize must be bigger or equal than windowsize" << end;
+        cerr << "buffersize must be bigger or equal than windowsize" << endl;
         return 1;
     }
 

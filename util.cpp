@@ -46,6 +46,7 @@ void readFile(FILE* file, Buffer *B, unsigned int *sequenceNumber, unsigned int 
 
                 Frame F;
                 createFrame(&F, *sequenceNumber, j, realData);
+                cout << "yes" << endl;
                 printFrame(F);
                 
                 // cout << "yes" << endl;
@@ -65,3 +66,44 @@ void printBuffer(Buffer B) {
     }
     cout << endl;
 }
+
+unsigned char* convertToChar(Frame F) {
+    int i;
+    int length = F.dataLength + 10;
+    unsigned char* dataFrame = new char[length];
+
+    dataFrame[0] = DefaultSOH;
+    for (i = 1; i <= 4; i++) {
+        dataFrame[i] = F.sequenceNumber >> (8 * (4 - i));
+    }
+    for (i = 5; i <= 8; i++) {
+        dataFrame[i] = F.dataLength >> (8 * (8 - i));
+    }
+    for (i = 9; i < F.dataLength + 9; i++) {
+        dataFrame[i] = F.data[i-9];
+    }
+    dataFrame[9 + F.dataLength] = F.checksum;
+
+    return dataFrame;
+}
+
+Frame convertToFrame(unsigned char *dataFrame) {
+    Frame F;
+    int i;
+
+    F.SOH = dataFrame[0];
+    for (i = 1; i <= 4; i++) {
+        F.sequenceNumber <<= 8;
+        F.sequenceNumber |= dataFrame[i];
+    }
+    for (i = 5; i <= 8; i++) {
+        F.dataLength <<= 8;
+        F.dataLength |= dataFrame[i];
+    }
+    for (i = 9; i < F.dataLength + 9; i++) {
+        F.data[i-9] = dataFrame[i];
+    }
+    F.checksum = dataFrame[9 + F.dataLength]
+
+    return F;
+} 

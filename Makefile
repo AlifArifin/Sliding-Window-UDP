@@ -1,14 +1,20 @@
-all: remove sendfile
+all: remove sendfile recvfile
 
 sendfile: ack.h buffer.h frame.h util.h windowsender.h
 	g++ -std=c++11 -pthread ack.cpp buffer.cpp frame.cpp util.cpp windowsender.cpp sendfile.cpp -o sendfile
 
-recvfile :
+recvfile : ack.h frame.h
+	g++ ack.cpp frame.cpp recvfile.cpp -o recvfile
 
 remove :
 	rm -f *.o *.gch sendfile recvfile
 
-case:
-	./sendfile tes.jpg 5 10 127.0.0.1 8000
+casesend:
+	./sendfile tes.txt 5 10 127.0.0.1 8000
 
-test: remove sendfile case
+testsend: remove sendfile casesend
+
+caserecv:
+	./recvfile tes2.txt 5 10 8000
+
+testrecv: remove recvfile caserecv
