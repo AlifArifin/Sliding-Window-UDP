@@ -47,3 +47,28 @@ Fungsi yang digunakan pada sliding window di receiver adalah:
 3. `convertToAckFrame`: mengonversi variabel dengan tipe data PacketACK ke tipe unsigned char * agar dapat dikirim lewat protokol.
 
 ### Sender
+Sliding window pada *sender* memiliki cara kerja sebagai berikut:<br>
+1. Menginisasi *window* dengan menentukan **LAR** dan **LFS**. **LAR** dan **LFS** pada pertama kali bernilai 0.
+2. *Window* akan memiliki "buffer" sebesar **SWS** yang berisikan pointer ke *buffer* yang sesungguhnya. pointer ditemani dengan
+    - **ACK** yang menandakan apakah frame tersebut telah menerima **ACK**.
+    - **timeout** sebagai timeout dari frame.
+    - **sent** menandakan apakah frame tersebut pernah dikirim atau tidak.
+3. Lalu ketika mengirim *frame* maka akan mengecek apakah `sequenceNumber - LAR <= SWS`. Apabila memenuhi syarat maka nilai dari **LFS** akan di-*update* (sebesar **sequenceNumber**) dan *frame* akan dikirim. Pengecekan tersebut dilakukan untuk memastikan `LFS - LAR <= SWS`.
+4. Ketika menerima **ACK** akan meng-*update* nilai dari **LAR** apabila memenuhi syarat. Syaratnya adalah `seluruh frame <= nextSequenceNumber(ACK) telah mendapatkan ACK`
+5. Kasus pada *sliding window*:
+    - Setiap *frame* akan memiliki *timeout* apabila setelah *timeout* belum mendapatkan ACK maka akan mengirimkan *frame* kembali.
+    - Ketika menerima **NAK**, *window* akan mengirimkan *frame* dengan **sequenceNumber** `LAR + 1`
+    - Ketika terdapat paket yang loss, maka tidak terjadi apa-apa (menunggu *timeout* untuk mengirim lagi)
+6. Ketika ingin menambah pointer baru ke "buffer" maka akan menimpa frame dengan syarat `sequenceNumber <= LAR`
+
+Fungsi yang ada pada sliding window sender
+1. `createWindowSender` menginisiasi pembentukan window
+2. `receiveACK` menghandle apabila mendapatkan ACK, menentukan apakah window perlu geser atau tidak
+3. `sendFrame` menentukan apakah perlu mengirim frame atau tidak. akan mengembalikan sequenceNumber dari frame yang akan dikirim (kalau 0 berarti tidak mengirim)
+4. `updateWindow` meng-*update* window yaitu mengubah pointer yang ada dengan pointer yang sudah tidak digunakan
+5. `printWindow` untuk *debug*
+
+## Pembagian Tugas
+1. Andreas Halim - 13516003 - Receiver dan Sliding Window untuk Receiver
+2. Rahmat Nur Ibrahim Santosa - 13516009 - Receiver dan Sliding Window untuk Receiver
+3. Muhammad Alif Arifin - 13516078 - Sender dan Sliding Window untuk Sender
