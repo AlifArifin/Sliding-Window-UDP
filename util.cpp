@@ -30,13 +30,14 @@ void readFile(FILE* file, Buffer *B, unsigned int *sequenceNumber, unsigned int 
 
                 // cout << "yes " << 'c' << endl;
 
-                j = fread(data, 1024, 1024, file);
+                j = fread(data, 1, MaxData, file);
                 // while(fread(temp, 1, 1, file) == 1 && j < 1024) {
                 //     // cout << j << endl;
                 //     data[j] = (unsigned char) temp[0]; 
                 //     j++;
                 //     // cout << j << endl;
                 // }
+                cout << j << endl;
 
                 unsigned char realData[j];
                 memcpy(realData, data, sizeof(realData));
@@ -45,19 +46,22 @@ void readFile(FILE* file, Buffer *B, unsigned int *sequenceNumber, unsigned int 
 
                 Frame F;
                 createFrame(&F, *sequenceNumber, j, realData);
+                printFrame(F);
                 
                 // cout << "yes" << endl;
-                sequenceNumber++;
+                *sequenceNumber += 1;
 
                 B->buffer[i] = F;
+                printBuffer(*B);
             }
         }
     }
 }
 
 void printBuffer(Buffer B) {
+    cout << "Buffer ";
     for (int i = 0; i < B.size; i++) {
-        // cout << B.buffer[i].sequenceNumber << " ";
+        cout << B.buffer[i].sequenceNumber << " ";
     }
-    // cout << endl;
+    cout << endl;
 }

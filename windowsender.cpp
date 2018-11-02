@@ -13,8 +13,6 @@ void createWindowSender(WindowSender *S, unsigned int sws) {
     for (int i = 0; i < S->SWS; i++) {
         createWindowBuffer(&S->buffer[i]);
     }
-
-    printWindow(*S);
 }
 
 void receiveACK(WindowSender *S, unsigned int nextSequenceNumber) {

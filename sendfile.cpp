@@ -89,7 +89,6 @@ int main(int argc, char* argv[]) {
 
     // membuat buffer yang menyimpan frame
     createBuffer(&buffer, buffersize);
-    cout << sizeof(buffer) << endl;
 
     // receiver address
     memset((char *) &si_other, 0, sizeof(si_other));
@@ -102,7 +101,7 @@ int main(int argc, char* argv[]) {
 
     // socket fail
     if (udp < 0) {
-        cerr << "socket fail";
+        cerr << "socket fail" << endl;;
         return 1;
     }
 
@@ -110,18 +109,13 @@ int main(int argc, char* argv[]) {
 
     // membuat window untuk sliding window
     createWindowSender(&windowSender, windowsize);
-    printWindow(windowSender);
 
     // mengecek file dapat dibaca atau tidak
     file = fopen(filename, "rb");
     if (file == NULL) {
-        cerr << "file not found";
+        cerr << "file not found" << endl;
         return 1;
     }
-
-    printWindow(windowSender);
-
-    
 
     fseek(file, 0, SEEK_END);
     unsigned int endFile = ftell(file);
@@ -138,10 +132,12 @@ int main(int argc, char* argv[]) {
     // init thread
     thread recv_thread(threadReceive);
 
+    cout << "Max Frame " << maxSequenceNumber << endl;
+
     // int count = 0;    
-
     printWindow(windowSender);
-
+    printBuffer(buffer);
+    
     while (!done) {
         m.lock();
         // count++;
@@ -150,10 +146,25 @@ int main(int argc, char* argv[]) {
         // }
         if (gotNAK) {
             // send LAR + 1 frame;
+            for (int i = 0; i < windowSender.SWS; i++) {
+                if (windowSender.buffer[i].sequenceNumber == windowSender.LAR + 1) {
+                    windowSender.buffer[i].timeout = high_resolution_clock::now() + milliseconds(TimeoutFrame);
+                    
+                    Frame frameSend = buffer.buffer[windowSender.buffer[i].frameNumber];
+                    char* segment = (char*) &frameSend;
+                    // send frame
+                    sendto(udp, 
+                        segment, sizeof(frameSend),
+                        0, (struct sockaddr*) &si_other, sizeSI);
+
+                    cout << "retransmit error frame " << windowSender.buffer[i].sequenceNumber << endl;
+                }
+            }
+
+            gotNAK = false;
         }
         
         readFile(file, &buffer, &sequenceNumber, windowSender.LAR);
-        printBuffer(buffer);
         
         unsigned int temp;
         temp = sendFrame(&windowSender, maxSequenceNumber);
@@ -173,7 +184,7 @@ int main(int argc, char* argv[]) {
                         segment, sizeof(frameSend),
                         0, (struct sockaddr*) &si_other, sizeSI);
 
-                    cout << "retransmit frame " << windowSender.buffer[i].sequenceNumber << endl;
+                    cout << "retransmit timeout frame " << windowSender.buffer[i].sequenceNumber << endl;
                 }
             }
         }
@@ -182,10 +193,8 @@ int main(int argc, char* argv[]) {
             // find next frameNum in windowSender
             int frameNum;
             
-            printWindow(windowSender);
             frameNum = updateWindow(&windowSender, &buffer, temp);
             // add timeout
-            printWindow(windowSender);
             
             windowSender.buffer[frameNum].timeout = high_resolution_clock::now() + milliseconds(TimeoutFrame);
             Frame frameSend = buffer.buffer[windowSender.buffer[frameNum].frameNumber];

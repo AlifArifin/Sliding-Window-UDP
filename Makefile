@@ -7,6 +7,6 @@ remove :
 	rm -f *.o *.gch sendfile recvfile
 
 case:
-	./sendfile tes.txt 5 5 127.0.0.1 8000
+	./sendfile tes.jpg 5 5 127.0.0.1 8000
 
 test: remove sendfile case

@@ -17,12 +17,13 @@ typedef struct {
 // definition
 #define DefaultSOH 0x1
 #define MaxData 1024
-#define TimeoutFrame 10
+#define TimeoutFrame 100
 
 // function
 void createFrame(Frame *F, unsigned int sequenceNumber, unsigned int dataLength, unsigned char* data);
 unsigned char generateChecksumFrame(Frame F);
 unsigned int handleCarry(unsigned int sum);
 void createFrameDefault(Frame *F);
+void printFrame(Frame F);
 
 #endif
