@@ -7,8 +7,23 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>	
+#include "ack.h"
+#include "frame.h"
 
 using namespace std;
+
+void readPacket (char* packet, Frame * F, bool* packetValid, bool* endOfTransfer) {
+    memcpy(&F->sequenceNumber, packet+1, 4);
+    memcpy(&F->dataLength, packet+5, 4);
+    memcpy(&F->data, packet+9, F->dataLength);
+
+    unsigned char packetChecksum = packet[9 + F->dataLength];
+    unsigned char checksum = generateChecksumFrame(*F);
+
+    *packetValid = (packetChecksum == checksum);
+
+    *endOfTransfer = (packet[0] == 0x0);
+}
 
 int main(int argc, char *argv[]) {
     struct sockaddr_in myaddr; /* our address*/
@@ -37,6 +52,7 @@ int main(int argc, char *argv[]) {
     unsigned int seq_num;
     bool packetValid;
     bool endOfTransfer;
+    PacketACK ackdata;
 
     /* Read argument */
     filename = argv[1];
@@ -89,10 +105,20 @@ int main(int argc, char *argv[]) {
             }
 
             /* read packet and safe to buffer */
-            // INSERT READ_PACKET
+            Frame F;
+            readPacket(packet, &F, &packetValid, &endOfTransfer);
+            seq_num = F.sequenceNumber;
+            datalen = F.dataLength;
+            memcpy(data, F.data, datalen);
+
+            //readPacket(packet, &seq_num, &datalen, data, &packetValid, &endOfTransfer);
 
             if (seq_num <= laf) {
-                // INSERT CREATE ACK
+                ackdata = createACK(1, seq_num);
+                /* create ack buffer */
+                ack[0] = ackdata.ACK;
+                memcpy(ack + 1, &ackdata.nextSequenceNumber, 4);
+                ack[5] = ackdata.checksum;
 
                 //Send ACK
                 int acklen = sendto(fd, ack, 6, MSG_WAITALL, (struct sockaddr*)&remaddr, addrlen);
