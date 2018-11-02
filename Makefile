@@ -4,7 +4,7 @@ sendfile: ack.h buffer.h frame.h util.h windowsender.h
 	g++ -std=c++11 -pthread ack.cpp buffer.cpp frame.cpp util.cpp windowsender.cpp sendfile.cpp -o sendfile
 
 recvfile : ack.h frame.h
-	g++ ack.cpp frame.cpp recvfile.cpp -o recvfile
+	g++ -std=c++11 ack.cpp frame.cpp util.cpp recvfile.cpp -o recvfile
 
 remove :
 	rm -f *.o *.gch sendfile recvfile

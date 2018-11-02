@@ -22,9 +22,14 @@ void receiveACK(WindowSender *S, unsigned int nextSequenceNumber) {
             S->buffer[i].sent = false;
         }
     }
+    cout << "rcv test" << endl;
+    cout << "LAR" << S->LAR << endl;
 
     while (true) {
         for (int i = 0; i < S->SWS; i++) {
+            if (S->LAR == S->LFS) {
+                return;
+            }
             if (S->buffer[i].sequenceNumber == S->LAR + 1) {
                 if (S->buffer[i].ack) {
                     S->LAR++;

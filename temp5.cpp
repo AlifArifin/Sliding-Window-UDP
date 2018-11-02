@@ -12,7 +12,6 @@
 #include <fstream>
 #include "util.h"
 #include <chrono>
-#include <stdio.h>
 
 using namespace std;
 using namespace chrono;
@@ -32,13 +31,7 @@ void readPacket (char* packet, Frame * F, bool* packetValid, bool* endOfTransfer
 
     unsigned char packetChecksum = packet[9 + F->dataLength];
     unsigned char checksum = generateChecksumFrame(*F);
-    cout << F->dataLength << endl;
-    for (int i = 0; i < 1024; i++) {
-        printf("%x ", F->data[i]);
-    }
-    cout << "SOH" << F->SOH << endl;
-    cout << "P" << packetChecksum << endl;
-    cout << "C" << checksum << endl;
+
     *packetValid = (packetChecksum == checksum);
 
     *endOfTransfer = (F->sequenceNumber == 0);
@@ -73,8 +66,6 @@ int main(int argc, char *argv[]) {
     bool packetValid;
     bool endOfTransfer;
     PacketACK ackdata;
-    int buffer_offset;
-
 
     /* Read argument */
     filename = argv[1];
@@ -152,14 +143,15 @@ int main(int argc, char *argv[]) {
                 }
                 
                 if (packetValid) {
-                    // if (seq_num != 0) {
-                    //     buffer_offset = (seq_num - 1) * 1024;
-                    // }
+                    int buffer_offset;
+                    if (seq_num != 0) {
+                        buffer_offset = (seq_num - 1) * 1024;
+                    }
 
                     if (seq_num == lfr + 1) {
                         /* copy buffer */
-                        memcpy(buffer, data, datalen);
-                        bufferSize += datalen;
+                        bufferSize = bufferSize + datalen;
+                        memcpy(buffer + buffer_offset, data, datalen);
                         unsigned int slide = 1;
                         for (unsigned int i = 1; i < windowSize; i++) {
                             if (!isPacketReceived[i]) {
@@ -183,18 +175,13 @@ int main(int argc, char *argv[]) {
                     } else if (seq_num > lfr + 1) {
                         /* copy to buffer */
                         if (!isPacketReceived[seq_num - lfr + 1]) {
-                            buffer_offset = (seq_num - lfr - 1) * 1024;
                             memcpy(buffer + buffer_offset, data, datalen);
                             isPacketReceived[seq_num - lfr + 1] = true;
-                            bufferSize += datalen;
                         }
                     }
 
                     if (endOfTransfer) {
                         // bufferSize = buffer_offset + datalen;
-                        if (bufferSize != 0) {
-                            fwrite(buffer, 1, bufferSize, file);
-                        }
                         seqCount = seq_num + 1;
                         done = true;
                         cout << "Receive last packet " << seq_num << endl;
@@ -217,6 +204,10 @@ int main(int argc, char *argv[]) {
                 /* SWP done*/
             }
         }
+        
+        cout << "buffer " << buffer << endl;
+        cout << "buffersize " << sizeof(buffer) << endl;
+        fwrite(buffer, 1, sizeof(buffer), file);
     }
     fclose(file);
     return 0;

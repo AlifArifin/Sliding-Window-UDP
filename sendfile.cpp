@@ -42,26 +42,35 @@ void threadReceive() {
     // menunggu ack dari receiver
     while (!done) {
         len = recvfrom(udp, segment, sizeP, 0, (struct sockaddr*) &si_other, &si_other_size);
-
+        // cout << "recv" << endl;
         // convert to Packet
-        P = convertToAck(segment);
+        convertToAck(&P, segment);
         unsigned int checksum = generateChecksumACK(P);
-
+        // cout << "test" << endl;
         if (checksum == P.checksum) {
             m.lock();
             // meng-update sliding window
-
-            if (P.ACK == DefaultACK) {
+            // cout << "test" << endl;
+            cout << P.ACK << endl;
+            cout << DefaultACK << endl;
+            if (P.ACK == (unsigned char) DefaultACK) {
+                cout << "test" << endl;
                 receiveACK(&windowSender, P.nextSequenceNumber);
+                cout << "test" << endl;
                 if (windowSender.LFS == maxSequenceNumber) {
                     if (windowSender.LFS == windowSender.LAR) {
                         done = true;
                     }
                 }
+                if (done) {
+                    cout << "done true";
+                } else {
+                    cout << "done false";
+                }
                 cout << "got ACK " << P.nextSequenceNumber << endl;
             } else {
                 gotNAK = true;
-                cout << "got NAK" << endl;
+                // cout << "got NAK" << endl;
             }
             m.unlock();
         }
@@ -170,7 +179,7 @@ int main(int argc, char* argv[]) {
                     unsigned char* segment = convertToChar(frameSend);
                     // send frame
                     sendto(udp, 
-                        segment, sizeof(frameSend),
+                        segment, frameSend.dataLength + 10,
                         0, (struct sockaddr*) &si_other, sizeSI);
 
                     cout << "retransmit error frame " << windowSender.buffer[i].sequenceNumber << endl;
@@ -198,7 +207,7 @@ int main(int argc, char* argv[]) {
 
                     // send frame
                     sendto(udp, 
-                        segment, sizeof(frameSend),
+                        segment, frameSend.dataLength + 10,
                         0, (struct sockaddr*) &si_other, sizeSI);
 
                     cout << "retransmit timeout frame " << windowSender.buffer[i].sequenceNumber << endl;
@@ -217,10 +226,18 @@ int main(int argc, char* argv[]) {
             windowSender.buffer[frameNum].sent = true;
             Frame frameSend = buffer.buffer[windowSender.buffer[frameNum].frameNumber];
             unsigned char* segment = convertToChar(frameSend);
+
+            // for (int i = 0; i < 1024; i++) {
+            //     printf("%x ", frameSend.data[i]);
+            // }
+            for (int i = 0; i < 3; i++) {
+                printf("%x ", segment[9+1020 + i]);
+            }
+
             // send frame
             this_thread::sleep_for(microseconds(TimeoutFrame));
             sendto(udp, 
-                segment, sizeof(frameSend),
+                segment, frameSend.dataLength + 10,
                 0, (struct sockaddr*) &si_other, sizeSI);
 
             cout << "transmit frame " << windowSender.buffer[frameNum].sequenceNumber << " " << windowSender.buffer[frameNum].timeout.time_since_epoch().count() << endl;
@@ -234,12 +251,14 @@ int main(int argc, char* argv[]) {
     createFrame(&sentinelFrame, 0, 0, NULL);
     unsigned char* segment = convertToChar(sentinelFrame);
 
+    cout << "send final" << endl;
+
     while (!final) {
         if (!sentinelSent) {
             // send frame
             this_thread::sleep_for(microseconds(TimeoutFrame));
             sendto(udp, 
-                segment, sizeof(sentinelFrame),
+                segment, sentinelFrame.dataLength + 10,
                 0, (struct sockaddr*) &si_other, sizeSI);
             sentinelSent = true;
         } else {
@@ -247,7 +266,7 @@ int main(int argc, char* argv[]) {
             if (now > timeout) {
                 this_thread::sleep_for(microseconds(TimeoutFrame));
                 sendto(udp, 
-                    segment, sizeof(sentinelFrame),
+                    segment, sentinelFrame.dataLength + 10,
                     0, (struct sockaddr*) &si_other, sizeSI);
             }
         }

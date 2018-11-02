@@ -6,18 +6,17 @@
 #include <chrono>
 #include <string.h>
 #include "ack.h"
+#include <stdio.h>
 
-PacketACK convertToAck (unsigned char * dataAck) {
-    PacketACK temp;
-    temp.ACK = dataAck[0];
+void convertToAck (PacketACK *temp, unsigned char * dataAck) {
+    temp->ACK = dataAck[0];
     unsigned int seqNumber = 0;
     for (int i=1;i<=4;i++) {
         seqNumber <<= 8;
         seqNumber |= dataAck[i];
     }
-    temp.nextSequenceNumber = seqNumber;
-    temp.checksum = dataAck[5];
-    return temp;
+    temp->nextSequenceNumber = seqNumber;
+    temp->checksum = dataAck[5];
 }
 
 void readFile(FILE* file, Buffer *B, unsigned int *sequenceNumber, unsigned int LAR) {
@@ -98,29 +97,39 @@ unsigned char* convertToChar(Frame F) {
         dataFrame[i] = F.data[i-9];
     }
     dataFrame[9 + F.dataLength] = F.checksum;
-
+    
     return dataFrame;
 }
 
-Frame convertToFrame(unsigned char *dataFrame) {
-    Frame F;
+void convertToFrame(Frame *F, unsigned char *dataFrame) {
     int i;
 
-    F.SOH = dataFrame[0];
+    cout << "yes" << endl;
+    F->SOH = dataFrame[0];
     for (i = 1; i <= 4; i++) {
-        F.sequenceNumber <<= 8;
-        F.sequenceNumber |= dataFrame[i];
+        F->sequenceNumber <<= 8;
+        F->sequenceNumber |= dataFrame[i];
     }
+    cout << F->sequenceNumber << endl;
+    cout << "yes" << endl;
     for (i = 5; i <= 8; i++) {
-        F.dataLength <<= 8;
-        F.dataLength |= dataFrame[i];
+        F->dataLength <<= 8;
+        F->dataLength |= dataFrame[i];
     }
-    for (i = 9; i < F.dataLength + 9; i++) {
-        F.data[i-9] = dataFrame[i];
+    cout << F->dataLength << endl;
+    cout << "yes" << endl;
+    cout << dataFrame[9] <<endl;
+    F->data = new unsigned char[F->dataLength];
+    for (i = 9; i < F->dataLength + 9; i++) {
+        F->data[i-9] = dataFrame[i];
     }
-    F.checksum = dataFrame[9 + F.dataLength];
-
-    return F;
+    
+    for (i = 0; i < 3; i++) {
+        printf("%x ", dataFrame[9+1020+i]);
+    }
+    cout << dataFrame[9 + 3] << endl;
+    F->checksum = dataFrame[9 + F->dataLength];
+    cout << F->checksum << endl;
 } 
 
 unsigned char* convertToAckFrame(PacketACK inputAck){
