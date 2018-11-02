@@ -2,22 +2,19 @@
 
 using namespace std;
 
-Buffer createBuffer(int size) {
-    Buffer B;
-    Frame buffer[size];
+void createBuffer(Buffer *B, int size) {
+    B->buffer = new Frame[size];
     
-    B.buffer = buffer;
-    B.size = size;
-    
-    return B;
+    for (int i = 0; i < size; i++) {
+        createFrameDefault(&B->buffer[i]);
+    }
+
+    B->size = size;
 }
 
-WindowBuffer createWindowBuffer() {
-    WindowBuffer W;
-
-    W.frameNumber = -1;
-    W.timeout = high_resolution_clock::now();
-    W.ack = false;
-
-    return W;
+void createWindowBuffer(WindowBuffer *W) {
+    W->frameNumber = -1;
+    W->sequenceNumber = 0;
+    W->timeout = high_resolution_clock::now();
+    W->ack = false;
 }

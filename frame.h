@@ -20,8 +20,9 @@ typedef struct {
 #define TimeoutFrame 10
 
 // function
-Frame createFrame(unsigned int sequenceNumber, unsigned int dataLength, unsigned char* data);
+void createFrame(Frame *F, unsigned int sequenceNumber, unsigned int dataLength, unsigned char* data);
 unsigned char generateChecksumFrame(Frame F);
 unsigned int handleCarry(unsigned int sum);
+void createFrameDefault(Frame *F);
 
 #endif

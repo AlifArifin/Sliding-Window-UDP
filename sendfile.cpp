@@ -29,8 +29,9 @@ unsigned int sequenceNumber;
 unsigned int maxSequenceNumber;
 mutex m;
 bool done = false;
+bool gotNAK = false;
 
-void receiveACK() {
+void threadReceive() {
     PacketACK P;
     char* segment = (char*) &P;
     int sizeP = sizeof(P);
@@ -45,11 +46,18 @@ void receiveACK() {
         if (checksum == P.checksum) {
             m.lock();
             // meng-update sliding window
-            receiveACK(&windowSender, P.nextSequenceNumber);
-            if (windowSender.LFS == maxSequenceNumber) {
-                if (windowSender.LFS == windowSender.LAR) {
-                    done = true;
+
+            if (P.ACK == DefaultACK) {
+                receiveACK(&windowSender, P.nextSequenceNumber);
+                if (windowSender.LFS == maxSequenceNumber) {
+                    if (windowSender.LFS == windowSender.LAR) {
+                        done = true;
+                    }
                 }
+                cout << "got ACK " << P.nextSequenceNumber << endl;
+            } else {
+                gotNAK = true;
+                cout << "got NAK" << endl;
             }
             m.unlock();
         }
@@ -80,7 +88,8 @@ int main(int argc, char* argv[]) {
     // setsockopt(udp, SOL_SOCKET, SO_RCVTImO, &recvtimeout, sizeof recvtimeout)
 
     // membuat buffer yang menyimpan frame
-    buffer = createBuffer(buffersize);
+    createBuffer(&buffer, buffersize);
+    cout << sizeof(buffer) << endl;
 
     // receiver address
     memset((char *) &si_other, 0, sizeof(si_other));
@@ -100,7 +109,8 @@ int main(int argc, char* argv[]) {
     cout << "Socket already built" << endl;
 
     // membuat window untuk sliding window
-    windowSender = createNew(windowsize);
+    createWindowSender(&windowSender, windowsize);
+    printWindow(windowSender);
 
     // mengecek file dapat dibaca atau tidak
     file = fopen(filename, "rb");
@@ -109,55 +119,83 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    printWindow(windowSender);
+
+    
+
     fseek(file, 0, SEEK_END);
     unsigned int endFile = ftell(file);
     maxSequenceNumber = (unsigned int) ceil(endFile/1024.0);
     rewind(file);
     // unsigned int nowFile = 0;
 
+    
+
     // inisiasi
-    sequenceNumber = 0;
+    sequenceNumber = 1;
     int sizeSI = sizeof(si_other);
 
     // init thread
-    thread recv_thread(receiveACK);
+    thread recv_thread(threadReceive);
 
+    // int count = 0;    
+
+    printWindow(windowSender);
 
     while (!done) {
         m.lock();
+        // count++;
+        // if (count % 10000 == 0) {
+        //     cout << "yes";
+        // }
+        if (gotNAK) {
+            // send LAR + 1 frame;
+        }
+        
         readFile(file, &buffer, &sequenceNumber, windowSender.LAR);
+        printBuffer(buffer);
+        
         unsigned int temp;
         temp = sendFrame(&windowSender, maxSequenceNumber);
-        if (temp == 0) {
-            // all frame already sent or frame in windowsize already sent
-            // check timeout
-            high_resolution_clock::time_point now = high_resolution_clock::now();
-            for (int i = 0; i < windowSender.SWS; i++) {
-                if (!windowSender.buffer[i].ack) {
-                    if (windowSender.buffer[i].timeout > now) {
-                        windowSender.buffer[i].timeout = high_resolution_clock::now() + microseconds(TimeoutFrame);
-                        
-                        Frame frameSend = buffer.buffer[windowSender.buffer[i].frameNumber];
-                        char* segment = (char*) &frameSend;
-                        // send frame
-                        sendto(udp, 
-                            segment, sizeof(frameSend),
-                            0, (struct sockaddr*) &si_other, sizeSI);
-                    }
+        
+        // check timeout
+        high_resolution_clock::time_point now = high_resolution_clock::now();
+        // cout << now.time_since_epoch().count() << endl;
+        for (int i = 0; i < windowSender.SWS; i++) {
+            if (!windowSender.buffer[i].ack && windowSender.buffer[i].sequenceNumber != 0) {
+                if (windowSender.buffer[i].timeout < now) {
+                    windowSender.buffer[i].timeout = high_resolution_clock::now() + milliseconds(TimeoutFrame);
+                    
+                    Frame frameSend = buffer.buffer[windowSender.buffer[i].frameNumber];
+                    char* segment = (char*) &frameSend;
+                    // send frame
+                    sendto(udp, 
+                        segment, sizeof(frameSend),
+                        0, (struct sockaddr*) &si_other, sizeSI);
+
+                    cout << "retransmit frame " << windowSender.buffer[i].sequenceNumber << endl;
                 }
             }
-        } else {
+        }
+
+        if (temp != 0) {
             // find next frameNum in windowSender
             int frameNum;
+            
+            printWindow(windowSender);
             frameNum = updateWindow(&windowSender, &buffer, temp);
             // add timeout
-            windowSender.buffer[frameNum].timeout = high_resolution_clock::now() + microseconds(TimeoutFrame);
+            printWindow(windowSender);
+            
+            windowSender.buffer[frameNum].timeout = high_resolution_clock::now() + milliseconds(TimeoutFrame);
             Frame frameSend = buffer.buffer[windowSender.buffer[frameNum].frameNumber];
             char* segment = (char*) &frameSend;
             // send frame
             sendto(udp, 
                 segment, sizeof(frameSend),
                 0, (struct sockaddr*) &si_other, sizeSI);
+
+            cout << "transmit frame " << windowSender.buffer[frameNum].sequenceNumber << " " << windowSender.buffer[frameNum].timeout.time_since_epoch().count() << endl;
         }
         m.unlock();
     }

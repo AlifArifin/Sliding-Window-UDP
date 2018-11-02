@@ -32,18 +32,23 @@ unsigned char generateChecksumFrame(Frame F) {
     return ~(sum);
 }
 
-Frame createFrame(unsigned int sequenceNumber, unsigned int dataLength, unsigned char* data) {
-    Frame F;
+void createFrame(Frame *F, unsigned int sequenceNumber, unsigned int dataLength, unsigned char* data) {
+    F->SOH = DefaultSOH;
+    F->sequenceNumber = sequenceNumber;
+    F->dataLength = dataLength;
+    F->data = new unsigned char[dataLength];
 
-    F.SOH = DefaultSOH;
-    F.sequenceNumber = sequenceNumber;
-    F.dataLength = dataLength;
-    for (unsigned int i = 0; i < F.dataLength; i++) {
-        F.data[i] = data[i];
+    for (int i = 0; i < F->dataLength; i++) {
+        F->data[i] = data[i];
     }
-    F.checksum = generateChecksumFrame(F);
+    F->checksum = generateChecksumFrame(*F);
+}
 
-    return F; 
+void createFrameDefault(Frame *F) {
+    F->SOH = DefaultSOH;
+    F->sequenceNumber = 0;
+    F->dataLength = 0;
+    F->checksum = generateChecksumFrame(*F);
 }
 
 unsigned int handleCarry(unsigned int sum) {

@@ -3,21 +3,18 @@
 
 using namespace std;
 
-WindowSender createNew(unsigned int sws) {
-    WindowSender S;
-    S.SWS = sws;
+void createWindowSender(WindowSender *S, unsigned int sws) {
+    S->SWS = sws;
 
-    WindowBuffer WB[S.SWS];
-    S.LAR = 0;
-    S.LFS = 0;
+    S->buffer = new WindowBuffer[S->SWS];
+    S->LAR = 0;
+    S->LFS = 0;
 
-    for (int i = 0; i < S.SWS; i++) {
-        WB[i] = createWindowBuffer();
+    for (int i = 0; i < S->SWS; i++) {
+        createWindowBuffer(&S->buffer[i]);
     }
 
-    S.buffer = WB;
-
-    return S;
+    printWindow(*S);
 }
 
 void receiveACK(WindowSender *S, unsigned int nextSequenceNumber) {
@@ -78,4 +75,12 @@ int updateWindow(WindowSender *S, Buffer *B, unsigned int sequenceNumber) {
     S->buffer[min].timeout = high_resolution_clock::now();
 
     return min;
+}
+
+void printWindow(WindowSender W) {
+    cout << "Window ";
+    for (int i = 0; i < W.SWS; i++) {
+        cout << W.buffer[i].sequenceNumber << " ";
+    }
+    cout << endl;
 }

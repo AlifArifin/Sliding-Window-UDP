@@ -21,7 +21,7 @@ typedef struct {
     bool ack;
 } WindowBuffer;
 
-Buffer createBuffer(int size);
-WindowBuffer createWindowBuffer();
+void createBuffer(Buffer *B, int size);
+void createWindowBuffer(WindowBuffer *W);
 
 #endif
