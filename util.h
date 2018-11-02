@@ -12,6 +12,7 @@ using namespace std;
 using namespace chrono;
 using std::chrono::system_clock;
 
+PacketACK convertToAck (unsigned char * dataAck);
 unsigned int handleCarry(unsigned int sum);
 void readFile(FILE* file, Buffer *B, unsigned int *sequenceNumber, unsigned int LAR);
 void printBuffer(Buffer B);

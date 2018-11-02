@@ -5,6 +5,20 @@
 #include "frame.h"
 #include <chrono>
 #include <string.h>
+#include "ack.h"
+
+PacketACK convertToAck (unsigned char * dataAck) {
+    PacketACK temp;
+    temp.ACK = dataAck[0];
+    unsigned int seqNumber = 0;
+    for (int i=1;i<=4;i++) {
+        seqNumber <<= 8;
+        seqNumber |= dataAck[i];
+    }
+    temp.nextSequenceNumber = seqNumber;
+    temp.checksum = dataAck[5];
+    return temp;
+}
 
 void readFile(FILE* file, Buffer *B, unsigned int *sequenceNumber, unsigned int LAR) {
     // mengecek apakah terdapat frame yang sudah di-ACK
