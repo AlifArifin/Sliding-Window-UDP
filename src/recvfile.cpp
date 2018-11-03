@@ -172,7 +172,7 @@ int main(int argc, char *argv[]) {
                         if (!isPacketReceived[seq_num - lfr + 1]) {
                             buffer_offset = (seq_num - lfr - 1) * 1024;
                             memcpy(buffer + buffer_offset, data, datalen);
-                            isPacketReceived[seq_num - lfr] = true;
+                            isPacketReceived[seq_num - lfr - 1] = true;
                             bufferSize += datalen;
                         }
                     }
@@ -199,6 +199,9 @@ int main(int argc, char *argv[]) {
                     cout << "Sending NAK " << seq_num << endl;
                 }
             } else {
+                cout << seq_num << endl;
+                cout << lfr << endl;
+                cout << laf << endl;
                 cout << "SeqNum not in range" << endl;
             }
 
